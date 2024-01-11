@@ -4,6 +4,9 @@
     El programa implementa una operación de convolución en una matriz bidimensional de tamaño <code>XDIMxYDIM</code>, donde se aplica un filtro de convolución de 3x3 definido por el arreglo de enteros kern. La matriz se crea utilizando la función <code>alloc_matrix()</code>, que reserva memoria necesaria y la inicializa con valores consecutivos. Posterior a esto, la función <code>fill()</code> se utiliza para llenar la matriz con valores aleatorios entre 0 y 99 para luego con la función <code>compute()</code>, aplicar el filtro de convolución a cada píxel de la misma. Finalmente, utilizando la función <code>print()</code>, se imprimen los valores finales de la matriz después de aplicar el filtro de convolución.
 </p>
 
+### Autores:
+- **Bottini, Franco Nicolas**
+
 ## Analisis del rendimiento (programa original)
 
 <p align="justify">
