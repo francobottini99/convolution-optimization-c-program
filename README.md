@@ -1,22 +1,22 @@
 # Optimización de un programa en C
 
-<div style="text-align:justify">
-<p>El programa implementa una operación de convolución en una matriz bidimensional de tamaño <code>XDIMxYDIM</code>, donde se aplica un filtro de convolución de 3x3 definido por el arreglo de enteros kern. La matriz se crea utilizando la función <code>alloc_matrix()</code>, que reserva memoria necesaria y la inicializa con valores consecutivos. Posterior a esto, la función <code>fill()</code> se utiliza para llenar la matriz con valores aleatorios entre 0 y 99 para luego con la función <code>compute()</code>, aplicar el filtro de convolución a cada píxel de la misma. Finalmente, utilizando la función <code>print()</code>, se imprimen los valores finales de la matriz después de aplicar el filtro de convolución.</p>
-</div>
+<p align="justify">
+    El programa implementa una operación de convolución en una matriz bidimensional de tamaño <code>XDIMxYDIM</code>, donde se aplica un filtro de convolución de 3x3 definido por el arreglo de enteros kern. La matriz se crea utilizando la función <code>alloc_matrix()</code>, que reserva memoria necesaria y la inicializa con valores consecutivos. Posterior a esto, la función <code>fill()</code> se utiliza para llenar la matriz con valores aleatorios entre 0 y 99 para luego con la función <code>compute()</code>, aplicar el filtro de convolución a cada píxel de la misma. Finalmente, utilizando la función <code>print()</code>, se imprimen los valores finales de la matriz después de aplicar el filtro de convolución.
+</p>
 
 ## Analisis del rendimiento (programa original)
 
-<div style="text-align:justify">
-<p>Para el análisis del rendimiento se utilizó la herramienta de profiling <i>gprof</i>, la cual permite obtener información sobre el tiempo de ejecución de cada función del programa. Las pruebas realizadas se hicieron sobre una matriz de 10000x10000 para obtener resultados mas significativos. Ademas, se omitió la ejecución de la función <code>print()</code> y se elimino la impresión por consola realizada en la función <code>compute()</code>, con el objetivo de obtener una visión acertada a cerca del rendimiento real de las funciones mas importantes del programa: <code>fill()</code>, <code>compute()</code> y <code>alloc_matrix()</code>. Finalmente, se ejecuto el programa 15 veces y se obtuvieron los siguientes resultados:</p>
-</div>
+<p align="justify">
+    Para el análisis del rendimiento se utilizó la herramienta de profiling <i>gprof</i>, la cual permite obtener información sobre el tiempo de ejecución de cada función del programa. Las pruebas realizadas se hicieron sobre una matriz de 10000x10000 para obtener resultados mas significativos. Ademas, se omitió la ejecución de la función <code>print()</code> y se elimino la impresión por consola realizada en la función <code>compute()</code>, con el objetivo de obtener una visión acertada a cerca del rendimiento real de las funciones mas importantes del programa: <code>fill()</code>, <code>compute()</code> y <code>alloc_matrix()</code>. Finalmente, se ejecuto el programa 15 veces y se obtuvieron los siguientes resultados:
+</p>
 
-<div style="text-align:center">
+<p align="center">
     <img src="img/programa_original.png" alt="No se pudo cargar la imagen">
-</div>
+</p>
 
-<div style="text-align:justify">
-<br><p>El tiempo de ejecución del programa varia ligeramente entre una ejecución y otra, esto se debe principalmente a como el sistema operativo reparte el tiempo de CPU entre los distintos procesos en ejecución. El tiempo medio de ejecución de este programa es de 4.13 segundos. Por otra parte, analizando uno de los resultados que nos da <i>gprof</i> para una ejecución del programa:</p>
-</div>
+<p align="justify">
+    El tiempo de ejecución del programa varia ligeramente entre una ejecución y otra, esto se debe principalmente a como el sistema operativo reparte el tiempo de CPU entre los distintos procesos en ejecución. El tiempo medio de ejecución de este programa es de 4.13 segundos. Por otra parte, analizando uno de los resultados que nos da <i>gprof</i> para una ejecución del programa:
+</p>
 
 ```
 Each sample counts as 0.01 seconds.
@@ -28,28 +28,28 @@ Each sample counts as 0.01 seconds.
   0.48      4.16     0.02                             _init
 ```
 
-<div style="text-align:justify">
-<p>Se observa claramente que la función <code>compute()</code> es la que mas tiempo de ejecución consume, seguida de <code>fill()</code> y <code>alloc_matrix()</code>. Esto se debe a que la funcion <code>compute()</code> es la encargada de aplicar el filtro de convolución a cada pixel de la matriz, por lo que es la función que mas operaciones realiza. Por otro lado, la función <code>fill()</code> es la encargada de llenar la matriz con valores aleatorios, y es la segunda función que mas tiempo consume. Finalmente, la función <code>alloc_matrix()</code> es la que menos tiempo de ejecución consume, ya que solo se encarga de reservar memoria para la matriz y de inicializar la misma. Esto se puede visualizar mejor en el siguiente grafico:</p>
-</div>
+<p align="justify">
+    Se observa claramente que la función <code>compute()</code> es la que mas tiempo de ejecución consume, seguida de <code>fill()</code> y <code>alloc_matrix()</code>. Esto se debe a que la funcion <code>compute()</code> es la encargada de aplicar el filtro de convolución a cada pixel de la matriz, por lo que es la función que mas operaciones realiza. Por otro lado, la función <code>fill()</code> es la encargada de llenar la matriz con valores aleatorios, y es la segunda función que mas tiempo consume. Finalmente, la función <code>alloc_matrix()</code> es la que menos tiempo de ejecución consume, ya que solo se encarga de reservar memoria para la matriz y de inicializar la misma. Esto se puede visualizar mejor en el siguiente grafico:
+</p>
 
-<div style="text-align:center">
+<p align="center">
     <img src="img/gprof_original.png" alt="No se pudo cargar la imagen">
-</div>
+</p>
 
 ## Optimización del código
 
-<div style="text-align:justify">
-<p>En cuanto a detalles generales, lo primero que se observa es la declaración de <code>XDIM</code> y <code>YDIM</code> como variables globales:</p>
-</div>
+<p align="justify">
+    En cuanto a detalles generales, lo primero que se observa es la declaración de <code>XDIM</code> y <code>YDIM</code> como variables globales:
+</p>
 
 ```C
 int XDIM = 10000;
 int YDIM = 10000;
 ```
 
-<div style="text-align:justify">
-<p>Esta declaración no es necesaria ya que su valor se mantiene constante durante toda la ejecución del programa, por lo que se puede declarar como una constante o como una macro de pre-procesador. Esto ultimo es lo que se realizo en este caso:</p>
-</div>
+<p align="justify">
+    Esta declaración no es necesaria ya que su valor se mantiene constante durante toda la ejecución del programa, por lo que se puede declarar como una constante o como una macro de pre-procesador. Esto ultimo es lo que se realizo en este caso:
+</p>
 
 ```C
 #define XDIM 10000
@@ -58,9 +58,9 @@ int YDIM = 10000;
 
 ### Función `compute()`
 
-<div style="text-align:justify">
-<p>Como se vio en el análisis previo, la función preponderante en la ejecución de este programa es <code>compute()</code> la cual se define de la siguiente manera:</p>
-</div>
+<p align="justify">
+    Como se vio en el análisis previo, la función preponderante en la ejecución de este programa es <code>compute()</code> la cual se define de la siguiente manera:
+</p>
 
 ```C
 /**
@@ -110,9 +110,9 @@ void compute(double** arr, int kern[3][3])
 }
 ```
 
-<div style="text-align:justify">
-<p>El primer cambio a implementar en este código, es el de eliminar la verificación que se realiza para determinar si no se esta en el borde de la matriz que se repite en cada iteración del bucle:</p>
-</div>
+<p align="justify">
+    El primer cambio a implementar en este código, es el de eliminar la verificación que se realiza para determinar si no se esta en el borde de la matriz que se repite en cada iteración del bucle:
+</p>
 
 ```C
 void compute(double** arr, int kern[3][3])
@@ -132,9 +132,9 @@ void compute(double** arr, int kern[3][3])
 }
 ```
 
-<div style="text-align:justify">
-<p>La condición evaluada resulta falsa solo en la primera y ultima iteración del bloque externo, y en la primera y ultima iteración del bucle interno, para el resto de iteraciones esta condición resulta verdadera. Por tanto, se pueden eliminar <i>(XDIM - 2) * (YDIM - 2)</i> evaluaciones del condicional innecesarias simplemente cambiando el inicio y el final de los bucles <code>for</code> anidados: </p>
-</div>
+<p align="justify">
+    La condición evaluada resulta falsa solo en la primera y ultima iteración del bloque externo, y en la primera y ultima iteración del bucle interno, para el resto de iteraciones esta condición resulta verdadera. Por tanto, se pueden eliminar <i>(XDIM - 2) * (YDIM - 2)</i> evaluaciones del condicional innecesarias simplemente cambiando el inicio y el final de los bucles <code>for</code> anidados:
+</p>
 
 ```C
 void compute(double** arr, int kern[3][3])
@@ -155,9 +155,9 @@ void compute(double** arr, int kern[3][3])
 }
 ```
 
-<div style="text-align:justify">
-<p>Luego, centrando la atención en la operación de convolución:</p>
-</div>
+<p align="justify">
+    Luego, centrando la atención en la operación de convolución:
+</p>
 
 ```C
 for(k = 0; k < 3; k++)
@@ -181,9 +181,9 @@ for(k = 0; k < 3; k++)
 arr[i][j] = accum;
 ```
 
-<div style="text-align:justify">
-<p>En esta secuencia, primero se calcula y almacena la convolución de cada pixel en un array temporal para posteriormente acumular su suma en una variable. Se puede compactar estas dos operaciones en una sola, para de esta manera eliminar el array temporal y el segundo conjunto de bucles anidados de la siguiente manera:</p>
-</div>
+<p align="justify">
+    En esta secuencia, primero se calcula y almacena la convolución de cada pixel en un array temporal para posteriormente acumular su suma en una variable. Se puede compactar estas dos operaciones en una sola, para de esta manera eliminar el array temporal y el segundo conjunto de bucles anidados de la siguiente manera:
+</p>
 
 ```C
 accum = 0;
@@ -203,9 +203,9 @@ for(k = 0; k < 3; k++)
 arr[i][j] = accum;
 ```
 
-<div style="text-align:justify">
-<p>Con esto se reduce prácticamente a la mitad el numero de operaciones realizadas para cada columna de la matriz. Por otra parte, se puede mejorar mas la eficiencia desdoblando el conjunto de bucles restantes:</p>
-</div>
+<p align="justify">
+    Con esto se reduce prácticamente a la mitad el numero de operaciones realizadas para cada columna de la matriz. Por otra parte, se puede mejorar mas la eficiencia desdoblando el conjunto de bucles restantes:
+</p>
 
 ```C
 accum = 0;
@@ -223,9 +223,9 @@ accum += 2 * (2 * kern[2][2] * arr[i + 1][j + 1]) / 1000 + 1;
 arr[i][j] = accum;
 ```
 
-<div style="text-align:justify">
-<p>Ademas, se puede simplificar la operación realizada en cada suma:</p>
-</div>
+<p align="justify">
+    Ademas, se puede simplificar la operación realizada en cada suma:
+</p>
 
 ```C
 accum += 2 * (2 * kern[0][0] * arr[i - 1][j - 1]) / 1000 + 1;
@@ -233,9 +233,9 @@ accum += 4 * kern[0][0] * arr[i - 1][j - 1] / 1000 + 1;
 accum += kern[0][0] * arr[i - 1][j - 1] / 250 + 1;
 ```
 
-<div style="text-align:justify">
-<p>Aplicando la propiedad distributiva y sumando los +1 de cada termino al final, reducimos el calculo de la convolución a lo siguiente:</p>
-</div>
+<p align="justify">
+    Aplicando la propiedad distributiva y sumando los +1 de cada termino al final, reducimos el calculo de la convolución a lo siguiente:
+</p>
 
 
 ```C
@@ -256,9 +256,9 @@ accum /= 250 + 9;
 arr[i][j] = accum;
 ```
 
-<div style="text-align:justify">
-<p>Para finalizar, se elimina la variable <code>accum</code> y se realiza todo en una única operación de asignación: </p>
-</div>
+<p align="justify">
+    Para finalizar, se elimina la variable <code>accum</code> y se realiza todo en una única operación de asignación:
+</p>
 
 ```C
 arr[i][j] = (kern[0][0] * arr[i - 1][j - 1] +
@@ -272,9 +272,9 @@ arr[i][j] = (kern[0][0] * arr[i - 1][j - 1] +
              kern[2][2] * arr[i + 1][j + 1]) / 250 + 9;
 ```
 
-<div style="text-align:justify">
-<p>Integrando esto en la función <code>compute()</code> resulta:</p>
-</div>
+<p align="justify">
+    Integrando esto en la función <code>compute()</code> resulta:
+</p>
 
 ```C
 void compute(double** arr, int kern[3][3])
@@ -299,17 +299,17 @@ void compute(double** arr, int kern[3][3])
 }
 ```
 
-<div style="text-align:justify">
-<p>Por otra lado, teniendo en cuenta que en cada iteración se divide por una constante y se suma una constante, se puede pre-calcular este valor por única vez antes de entrar en los bucles:</p>
-</div>
+<p align="justify">
+    Por otra lado, teniendo en cuenta que en cada iteración se divide por una constante y se suma una constante, se puede pre-calcular este valor por única vez antes de entrar en los bucles:
+</p>
 
 ```C
 const double factor = 1 / 250 + 9;
 ```
 
-<div style="text-align:justify">
-<p>Si a esto se le agrega el hecho de que <code>kern</code> contiene valores contantes, se puede calcular la multiplicación de cada elemento del mismo por el factor previo a la ejecución del bucle. De esta manera, se evitan realizar múltiples operaciones repetidas en cada iteración del bucle:</p>
-</div>
+<p align="justify">
+    Si a esto se le agrega el hecho de que <code>kern</code> contiene valores contantes, se puede calcular la multiplicación de cada elemento del mismo por el factor previo a la ejecución del bucle. De esta manera, se evitan realizar múltiples operaciones repetidas en cada iteración del bucle:
+</p>
 
 ```C
 const double factor = 1 / 250 + 9;
@@ -321,9 +321,9 @@ const double kern_factor[9] =
 };
 ```
 
-<div style="text-align:justify">
-<p>Implementando estos cambios en la función resulta en:</p>
-</div>
+<p align="justify">
+    Implementando estos cambios en la función resulta en:
+</p>
 
 ```C
 void compute(double** arr, int kern[3][3])
@@ -355,9 +355,9 @@ void compute(double** arr, int kern[3][3])
 }
 ```
 
-<div style="text-align:justify">
-<p>Un ultimo detalle, se observa que la variable <code>i</code>, la cual se encarga de indexar las filas de la matriz, se mantiene constante durante toda la ejecución del bucle interno. Teniendo en cuenta esto, se puede pre-calcular la dirección de memoria de las tres filas utilizadas en el bucle interno antes de entrar en este. De esta manera, nos ahorramos accesos a memoria repetitivos:</p>
-</div>
+<p align="justify">
+    Un ultimo detalle, se observa que la variable <code>i</code>, la cual se encarga de indexar las filas de la matriz, se mantiene constante durante toda la ejecución del bucle interno. Teniendo en cuenta esto, se puede pre-calcular la dirección de memoria de las tres filas utilizadas en el bucle interno antes de entrar en este. De esta manera, nos ahorramos accesos a memoria repetitivos:
+</p>
 
 ```C
 for(i = 1; i < XDIM - 1 ; i++) 
@@ -373,9 +373,9 @@ for(i = 1; i < XDIM - 1 ; i++)
 }
 ```
 
-<div style="text-align:justify">
-<p>Con esta ultima modificación obtenemos la nueva versión optimizada de la función <code>compute()</code>:</p>
-</div>
+<p align="justify">
+    Con esta ultima modificación obtenemos la nueva versión optimizada de la función <code>compute()</code>:
+</p>
 
 ```C
 void compute(double **arr, int kern[3][3])
@@ -413,9 +413,9 @@ void compute(double **arr, int kern[3][3])
 
 ### Función `alloc_matrix()`
 
-<div style="text-align:justify">
-<p>Si bien, de las tres principales, esta es la función menos preponderante en la ejecución del programa, se puede aplicar una mejora en ella. La definición actual de la función es:</p>
-</div>
+<p align="justify">
+    Si bien, de las tres principales, esta es la función menos preponderante en la ejecución del programa, se puede aplicar una mejora en ella. La definición actual de la función es:
+</p>
 
 ```C
 /**
@@ -440,9 +440,9 @@ double **alloc_matrix(void)
 }
 ```
 
-<div style="text-align:justify">
-<p>Se observa que, luego de reservar memoria para alojar la matriz, se inicializa cada celda de la misma con el valor del indice de su columna. Esta acción resulta innecesaria ya que no ejerce ninguna utilidad practica a futuro. Para mejorar el rendimiento, se puede omitir esto y inicializar la celda en cero cuando se esta reservando memoria para la misma:</p>
-</div>
+<p align="justify">
+    Se observa que, luego de reservar memoria para alojar la matriz, se inicializa cada celda de la misma con el valor del indice de su columna. Esta acción resulta innecesaria ya que no ejerce ninguna utilidad practica a futuro. Para mejorar el rendimiento, se puede omitir esto y inicializar la celda en cero cuando se esta reservando memoria para la misma:
+</p>
 
 ```C
 array = malloc(XDIM * sizeof(double *));
@@ -451,9 +451,9 @@ for(i = 0; i < XDIM; i++)
     array[i] = calloc(YDIM, sizeof(double)); // Reserva memoria para la celda y la inicializa en cero
 ```
 
-<div style="text-align:justify">
-<p>Con esto una implementación mas optima de la función <code>alloc_matrix</code> resulta:</p>
-</div>
+<p align="justify">
+    Con esto una implementación mas optima de la función <code>alloc_matrix</code> resulta:
+</p>
 
 ```C
 double **alloc_matrix(void)
@@ -472,23 +472,23 @@ double **alloc_matrix(void)
 
 ### Finalizando la Optimización
 
-<div style="text-align:justify">
-<p>Cabe recalcar que, a partir de este punto, el programa se puede seguir optimizando, sin embargo, para obtener un aumento de eficiencia significativo se tendrían que recurrir a mecanismos paralelismo y vectorización. Por motivos de tiempo, se considero razonable cerrar el trabajo en esta versión</p>
-</div>
+<p align="justify">
+    Cabe recalcar que, a partir de este punto, el programa se puede seguir optimizando, sin embargo, para obtener un aumento de eficiencia significativo se tendrían que recurrir a mecanismos paralelismo y vectorización. Por motivos de tiempo, se considero razonable cerrar el trabajo en esta versión
+</p>
 
 ## Analisis del rendimiento (programa optimizado)
 
-<div style="text-align:justify">
-<p>Nuevamente haciendo uso de la herramienta de profiling <i>gprof</i>. Se realizaron las pruebas de rendimiento de la versión optimizada del software sobre una matriz de 10000x10000. Luego de ejecutar el programa 15 veces, se obtuvo:</p>
-</div>
+<p align="justify">
+    Nuevamente haciendo uso de la herramienta de profiling <i>gprof</i>. Se realizaron las pruebas de rendimiento de la versión optimizada del software sobre una matriz de 10000x10000. Luego de ejecutar el programa 15 veces, se obtuvo:
+</p>
 
-<div style="text-align:center">
+<p align="center">
     <img src="img/programa_optimizado.png" alt="No se pudo cargar la imagen">
-</div>
+</p>
 
-<div style="text-align:justify">
-<br><p>Nuevamente, el tiempo de ejecución del programa varia ligeramente entre una ejecución y otra. El tiempo medio de ejecución de esta versión optimizada del programa es de 0.72 segundos. Por otra parte, analizando uno de los resultados que nos da <i>gprof</i> para una ejecución del programa:</p>
-</div>
+<p align="justify">
+    Nuevamente, el tiempo de ejecución del programa varia ligeramente entre una ejecución y otra. El tiempo medio de ejecución de esta versión optimizada del programa es de 0.72 segundos. Por otra parte, analizando uno de los resultados que nos da <i>gprof</i> para una ejecución del programa:
+</p>
 
 ```
 Each sample counts as 0.01 seconds.
@@ -500,24 +500,24 @@ Each sample counts as 0.01 seconds.
   0.00      0.71     0.00        1     0.00     0.00  alloc_matrix
 ```
 
-<div style="text-align:justify">
-<p>Se observa claramente que la función <code>compute()</code> sigue siendo la mas preponderante en el tiempo de ejecución del programa, y que el tiempo de ejecución de la función <code>alloc_matrix()</code> se volvió insignificante. Esto se puede visualizar mejor en el siguiente grafico:</p>
-</div>
+<p align="justify">
+    Se observa claramente que la función <code>compute()</code> sigue siendo la mas preponderante en el tiempo de ejecución del programa, y que el tiempo de ejecución de la función <code>alloc_matrix()</code> se volvió insignificante. Esto se puede visualizar mejor en el siguiente grafico:
+</p>
 
-<div style="text-align:center">
+<p align="center">
     <img src="img/gprof_optimizado.png" alt="No se pudo cargar la imagen">
-</div>
+</p>
 
 ## Comparación de rendimiento (programa optimizado vs programa original)
 
-<div style="text-align:justify">
-<p>Comparando los resultados obtenidos para las ejecuciones del programa original y del programa optimizado, tenemos:</p>
-</div>
+<p align="justify">
+    Comparando los resultados obtenidos para las ejecuciones del programa original y del programa optimizado, tenemos:
+</p>
 
-<div style="text-align:center">
+<p align="center">
     <img src="img/comparacion.png" alt="No se pudo cargar la imagen">
-</div>
+</p>
 
-<div style="text-align:justify">
-<p>Se puede observar una mejora promedio del 82.6% en el tiempo de ejecución del programa optimizado</p>
-</div>
+<p align="justify">
+    Se puede observar una mejora promedio del 82.6% en el tiempo de ejecución del programa optimizado
+</p>
