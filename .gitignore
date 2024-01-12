@@ -1,0 +1,9 @@
+/vscode
+/bin
+/results
+/CMakeFiles
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+gmon.out
+analisis.txt
